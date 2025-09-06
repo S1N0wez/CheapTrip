@@ -37,7 +37,7 @@ def search_tickets():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Важно для Vercel
 if __name__ == '__main__':
-    # Важно: используем порт из переменной окружения
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
