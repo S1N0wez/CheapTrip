@@ -3,50 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поиск авиабилетов</title>
+    <title>Поиск дешёвых авиабилетов</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        input, button { padding: 10px; margin: 5px; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        .search-form {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .results {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .ticket {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            transition: box-shadow 0.3s;
+        }
+
+        .ticket:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .buy-btn {
+            background: #4CAF50;
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Поиск дешёвых авиабилетов</h1>
+    <div class="container">
+        <div class="header">
+            <h1>✈️ Поиск дешёвых авиабилетов</h1>
+            <p>Найдите лучшие цены на авиабилеты по всему миру</p>
+        </div>
 
-    <form id="searchForm">
-        <input type="text" id="origin" placeholder="Откуда (MOW)" value="MOW">
-        <input type="text" id="destination" placeholder="Куда (LED)" value="LED">
-        <input type="date" id="depart_date" value="2025-05-01">
-        <input type="date" id="return_date" value="2025-05-10">
-        <button type="submit">Найти билеты</button>
-    </form>
-
-    <div id="results"></div>
-
-    <script>
-        document.getElementById('searchForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const origin = document.getElementById('origin').value;
-            const destination = document.getElementById('destination').value;
-            const depart_date = document.getElementById('depart_date').value;
-            const return_date = document.getElementById('return_date').value;
-
-            const response = await fetch(`/api/search?origin=${origin}&destination=${destination}&depart_date=${depart_date}&return_date=${return_date}`);
-            const data = await response.json();
-
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-        });
-    </script>
-
-    <!-- Скрипт Travelpayouts -->
-    <script data-noptimize="1" data-cfasync="false" data-wpfc-render="false">
-      (function () {
-          var script = document.createElement("script");
-          script.async = 1;
-          script.src = 'https://emrldco.com/NDU2ODI3.js?t=456827';
-          document.head.appendChild(script);
-      })();
-    </script>
-</body>
-</html>
+        <div class="search-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="origin">Откуда</label>
+                    <input type="text" id="origin" placeholder="Код города (MOW)" value="MOW">
+                </div>
+                <div class="form-group">
