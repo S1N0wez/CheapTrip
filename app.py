@@ -1,15 +1,13 @@
+import os
 from flask import Flask, request, jsonify, render_template
 import requests
-import os
 from flask_cors import CORS
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-TRAVELPAYOUTS_TOKEN = os.getenv('TRAVELPAYOUTS_TOKEN')
+# Получаем токен из переменных окружения
+TRAVELPAYOUTS_TOKEN = os.environ.get('TRAVELPAYOUTS_TOKEN', 'temp_token')
 
 @app.route('/')
 def index():
@@ -40,4 +38,6 @@ def search_tickets():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Важно: используем порт из переменной окружения
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port, debug=False)
