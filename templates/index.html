@@ -139,3 +139,90 @@
                     <input type="text" id="origin" placeholder="Код города (MOW)" value="MOW">
                 </div>
                 <div class="form-group">
+                    <label for="destination">Куда</label>
+                    <input type="text" id="destination" placeholder="Код города (LED)" value="LED">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="depart_date">Туда</label>
+                    <input type="date" id="depart_date" value="2025-05-01">
+                </div>
+                <div class="form-group">
+                    <label for="return_date">Обратно</label>
+                    <input type="date" id="return_date" value="2025-05-10">
+                </div>
+            </div>
+
+            <!-- ВАЖНО: Кнопка "Найти" -->
+            <button type="button" id="searchBtn">Найти билеты</button>
+        </div>
+
+        <div class="results">
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        // ВАЖНО: Обработчик клика на кнопку
+        document.getElementById('searchBtn').addEventListener('click', async () => {
+            const origin = document.getElementById('origin').value;
+            const destination = document.getElementById('destination').value;
+            const depart_date = document.getElementById('depart_date').value;
+            const return_date = document.getElementById('return_date').value;
+
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="loading">Ищем билеты...</div>';
+
+            try {
+                const response = await fetch(`/api/search?origin=${origin}&destination=${destination}&depart_date=${depart_date}&return_date=${return_date}`);
+                const data = await response.json();
+
+                if (data.data) {
+                    displayTickets(data.data);
+                } else {
+                    resultsDiv.innerHTML = '<div class="loading">Билеты не найдены</div>';
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="loading">Ошибка при поиске</div>';
+            }
+        });
+
+        function displayTickets(tickets) {
+            const resultsDiv = document.getElementById('results');
+            let html = '';
+
+            for (let date in tickets) {
+                const ticket = tickets[date];
+                html += `
+                    <div class="ticket">
+                        <h3>${date}</h3>
+                        <div class="price">${ticket.value} ${ticket.currency}</div>
+                        <button class="buy-btn" onclick="buyTicket('${ticket.origin}', '${ticket.destination}', '${date}')">
+                            Купить билет
+                        </button>
+                    </div>
+                `;
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function buyTicket(origin, destination, date) {
+            // Пока просто алерт, позже сделаем редирект
+            alert(`Купить билет: ${origin} → ${destination} на ${date}`);
+        }
+    </script>
+
+    <!-- Скрипт Travelpayouts -->
+    <script data-noptimize="1" data-cfasync="false" data-wpfc-render="false">
+      (function () {
+          var script = document.createElement("script");
+          script.async = 1;
+          script.src = 'https://emrldco.com/NDU2ODI3.js?t=456827';
+          document.head.appendChild(script);
+      })();
+    </script>
+</body>
+</html>
