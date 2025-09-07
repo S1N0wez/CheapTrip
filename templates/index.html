@@ -115,6 +115,11 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .buy-btn:hover {
+            background: #45a049;
         }
 
         .loading {
@@ -124,22 +129,13 @@
             padding: 20px;
         }
 
-        .filters {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-        }
-
-        .filter-row {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
+        .ticket-info {
+            margin: 10px 0;
+            color: #666;
         }
 
         @media (max-width: 768px) {
-            .form-row, .filter-row {
+            .form-row {
                 flex-direction: column;
             }
         }
@@ -241,20 +237,23 @@
             for (let date in tickets) {
                 const ticket = tickets[date];
 
-                // Фильтр по багажу (пока упрощённый, т.к. Travelpayouts API не всегда даёт эту информацию)
-                if (baggage === 'with' && ticket.value < 5000) continue; // Условный фильтр
-                if (baggage === 'without' && ticket.value > 10000) continue; // Условный фильтр
+                // Фильтр по багажу (пока упрощённый)
+                if (baggage === 'with' && ticket.value < 5000) continue;
+                if (baggage === 'without' && ticket.value > 10000) continue;
 
                 // Расчёт цены с учётом пассажиров
-                const totalPrice = ticket.value * passengers;
+                const totalPrice = ticket.value * parseInt(passengers);
 
                 html += `
                     <div class="ticket">
                         <h3>Рейс: ${ticket.origin} → ${ticket.destination}</h3>
-                        <p><strong>Дата:</strong> ${date}</p>
+                        <div class="ticket-info">
+                            <p><strong>Дата:</strong> ${date}</p>
+                            <p><strong>Авиакомпания:</strong> ${getAirlineName(ticket.airline)} ${ticket.airline || ''}</p>
+                        </div>
                         <div class="price">${totalPrice} ${ticket.currency} за ${passengers} пассажира(ов)</div>
                         <p><strong>Цена за 1 пассажира:</strong> ${ticket.value} ${ticket.currency}</p>
-                        <button class="buy-btn" onclick="buyTicket('${ticket.origin}', '${ticket.destination}', '${date}', ${totalPrice})">
+                        <button class="buy-btn" onclick="buyTicket('${ticket.origin}', '${ticket.destination}', '${date}', ${ticket.value})">
                             Купить билет
                         </button>
                     </div>
@@ -269,17 +268,48 @@
             resultsDiv.innerHTML = html;
         }
 
-        // Функция покупки билета (пока заглушка)
-        function buyTicket(origin, destination, date, price) {
-            // Здесь будет редирект на партнёрский сайт
-            alert(`Переход к покупке билета:\n${origin} → ${destination}\nДата: ${date}\nЦена: ${price} RUB\n\n(Редирект на партнёрский сайт)`);
+        // Функция для получения названия авиакомпании
+        function getAirlineName(code) {
+            const airlines = {
+                'SU': 'Аэрофлот',
+                'S7': 'S7 Airlines',
+                'FV': 'Rossiya Airlines',
+                'UT': 'UTair',
+                'AZ': 'Alitalia',
+                'LH': 'Lufthansa',
+                'AF': 'Air France',
+                'BA': 'British Airways'
+            };
+            return airlines[code] || 'Авиакомпания';
+        }
 
-            // TODO: Здесь будет редирект на реальный партнёрский сайт
-            // window.location.href = 'https://partnersite.com/search?...';
+        // Функция покупки билета - редирект через Travelpayouts
+        function buyTicket(origin, destination, departDate, price) {
+            // Форматируем дату для Aviasales
+            const formattedDate = departDate.replace(/-/g, '');
+
+            // Создаём URL для редиректа через Travelpayouts
+            // Это отправит пользователя через систему Travelpayouts
+            // которая может направить на сайт авиакомпании
+            const searchRoute = `${origin}${formattedDate}${destination}1`;
+            const redirectUrl = `https://hydra.aviasales.ru/searches/new?marker=ND56827&url=https%3A%2F%2Fwww.aviasales.ru%2Fsearch%2F${searchRoute}`;
+
+            // Открываем в новой вкладке
+            window.open(redirectUrl, '_blank');
+
+            // Отправляем событие в Travelpayouts для отслеживания
+            if (window.tp) {
+                window.tp('track', 'ticket_purchase', {
+                    origin: origin,
+                    destination: destination,
+                    date: departDate,
+                    price: price
+                });
+            }
         }
     </script>
 
-    <!-- Скрипт Travelpayouts -->
+    <!-- Скрипт Travelpayouts для отслеживания -->
     <script data-noptimize="1" data-cfasync="false" data-wpfc-render="false">
       (function () {
           var script = document.createElement("script");
