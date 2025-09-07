@@ -75,6 +75,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: transform 0.2s;
+            margin-top: 10px;
         }
 
         button:hover {
@@ -104,22 +105,41 @@
             font-size: 24px;
             font-weight: bold;
             color: #667eea;
+            margin: 10px 0;
         }
 
         .buy-btn {
             background: #4CAF50;
             padding: 10px 20px;
             font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
         .loading {
             text-align: center;
             color: #666;
             font-size: 18px;
+            padding: 20px;
+        }
+
+        .filters {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         @media (max-width: 768px) {
-            .form-row {
+            .form-row, .filter-row {
                 flex-direction: column;
             }
         }
@@ -155,7 +175,27 @@
                 </div>
             </div>
 
-            <!-- ВАЖНО: Кнопка "Найти" -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="passengers">Пассажиры</label>
+                    <select id="passengers">
+                        <option value="1">1 пассажир</option>
+                        <option value="2">2 пассажира</option>
+                        <option value="3">3 пассажира</option>
+                        <option value="4">4 пассажира</option>
+                        <option value="5">5 пассажиров</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="baggage">Багаж</label>
+                    <select id="baggage">
+                        <option value="any">Любой</option>
+                        <option value="with">С багажом</option>
+                        <option value="without">Без багажа</option>
+                    </select>
+                </div>
+            </div>
+
             <button type="button" id="searchBtn">Найти билеты</button>
         </div>
 
@@ -165,53 +205,77 @@
     </div>
 
     <script>
-        // ВАЖНО: Обработчик клика на кнопку
+        // Обработчик клика на кнопку поиска
         document.getElementById('searchBtn').addEventListener('click', async () => {
             const origin = document.getElementById('origin').value;
             const destination = document.getElementById('destination').value;
             const depart_date = document.getElementById('depart_date').value;
             const return_date = document.getElementById('return_date').value;
+            const passengers = document.getElementById('passengers').value;
+            const baggage = document.getElementById('baggage').value;
 
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = '<div class="loading">Ищем билеты...</div>';
 
             try {
+                // Запрос к API Travelpayouts
                 const response = await fetch(`/api/search?origin=${origin}&destination=${destination}&depart_date=${depart_date}&return_date=${return_date}`);
                 const data = await response.json();
 
                 if (data.data) {
-                    displayTickets(data.data);
+                    displayTickets(data.data, passengers, baggage);
                 } else {
                     resultsDiv.innerHTML = '<div class="loading">Билеты не найдены</div>';
                 }
             } catch (error) {
-                resultsDiv.innerHTML = '<div class="loading">Ошибка при поиске</div>';
+                resultsDiv.innerHTML = '<div class="loading">Ошибка при поиске: ' + error.message + '</div>';
             }
         });
 
-        function displayTickets(tickets) {
+        // Отображение билетов с фильтрацией и расчётом цены
+        function displayTickets(tickets, passengers, baggage) {
             const resultsDiv = document.getElementById('results');
-            let html = '';
+            let html = '<h2>Найденные билеты:</h2>';
+            let foundTickets = 0;
 
             for (let date in tickets) {
                 const ticket = tickets[date];
+
+                // Фильтр по багажу (пока упрощённый, т.к. Travelpayouts API не всегда даёт эту информацию)
+                if (baggage === 'with' && ticket.value < 5000) continue; // Условный фильтр
+                if (baggage === 'without' && ticket.value > 10000) continue; // Условный фильтр
+
+                // Расчёт цены с учётом пассажиров
+                const totalPrice = ticket.value * passengers;
+
                 html += `
                     <div class="ticket">
-                        <h3>${date}</h3>
-                        <div class="price">${ticket.value} ${ticket.currency}</div>
-                        <button class="buy-btn" onclick="buyTicket('${ticket.origin}', '${ticket.destination}', '${date}')">
+                        <h3>Рейс: ${ticket.origin} → ${ticket.destination}</h3>
+                        <p><strong>Дата:</strong> ${date}</p>
+                        <div class="price">${totalPrice} ${ticket.currency} за ${passengers} пассажира(ов)</div>
+                        <p><strong>Цена за 1 пассажира:</strong> ${ticket.value} ${ticket.currency}</p>
+                        <button class="buy-btn" onclick="buyTicket('${ticket.origin}', '${ticket.destination}', '${date}', ${totalPrice})">
                             Купить билет
                         </button>
                     </div>
                 `;
+                foundTickets++;
+            }
+
+            if (foundTickets === 0) {
+                html = '<div class="loading">Билеты не найдены по заданным критериям</div>';
             }
 
             resultsDiv.innerHTML = html;
         }
 
-        function buyTicket(origin, destination, date) {
-            // Пока просто алерт, позже сделаем редирект
-            alert(`Купить билет: ${origin} → ${destination} на ${date}`);
+        // Функция покупки билета (пока заглушка)
+        function buyTicket(origin, destination, date, price) {
+            // Здесь будет редирект на партнёрский сайт
+            alert(`Переход к покупке билета:\n${origin} → ${destination}\nДата: ${date}\nЦена: ${price} RUB\n\n(Редирект на партнёрский сайт)`);
+
+            // TODO: Здесь будет редирект на реальный партнёрский сайт
+            // window.location.href = 'https://partnersite.com/search?...';
         }
     </script>
 
